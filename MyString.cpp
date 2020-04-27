@@ -32,15 +32,36 @@ class MyString {
 
     // Destructor
     ~MyString() {
-        std::cout << "Invoking destructor, deleting memory pointed to by buffer." << std::endl;
         if (buffer != NULL) {
             delete[] buffer;
         }
     }
 
-    // Move Constructor : TO BE IMPLEMENTED
+    // Move Constructor
+    MyString(MyString&& moveSrc) {
+        std::cout << "Move constructor moves from: " << moveSrc.buffer << std::endl;
+        if (moveSrc.buffer != NULL) {
+            // take ownership
+            buffer = moveSrc.buffer;
+            // free move source
+            moveSrc.buffer = NULL;
+        }
+    }
 
-    // Move Assignment operator : TO BE IMPLEMENTED
+    // Move Assignment operator
+    MyString& operator=(MyString&& moveSrc) {
+        std::cout << "Move assignment operator moves from: " << moveSrc.buffer << std::endl;
+        // Ensure we don't assign it to itself
+        if ((moveSrc.buffer != NULL) && (this != &moveSrc)) {
+            // deallocate memory
+            delete[] buffer;
+            // take ownership
+            buffer = moveSrc.buffer;
+            // free move source
+            moveSrc.buffer = NULL;
+        }
+        return *this;
+    }
 
     // Copy constructor
     MyString(const MyString& copySrc) {
@@ -57,10 +78,10 @@ class MyString {
     }
 
     // Copy assignment
-    MyString operator=(const MyString& copySrc) {
-        std::cout << "Copy assignment copies from: " << copySrc.buffer << std::endl;
+    MyString& operator=(const MyString& copySrc) {
+        std::cout << "Copy assignment operator copies from: " << copySrc.buffer << std::endl;
         // Ensure we don't assign it to itself
-        if (this != &copySrc && copySrc.buffer != NULL) {
+        if ((copySrc.buffer != NULL) && (this != &copySrc)) {
             if (buffer != NULL) {
                 // deallocate memory
                 delete[] buffer;
@@ -75,6 +96,7 @@ class MyString {
 
     // overloaded + operator
     MyString operator+(const MyString& rhs) {
+        std::cout << "operator+ called:" << std::endl;
         MyString temp;
         if (rhs.buffer != NULL) {
             // allocate memory for buffer
@@ -89,6 +111,10 @@ class MyString {
 
     int length() { return strlen(buffer); }
 
+    void show() {
+        std::cout << "MyString contains a string of length: " << length() << " which contains the character array: " << (*this) << std::endl;
+    }
+
     // Print string to screen. std::ostream declared as a friend of MyString
     // as it needs access to private variable buffer
     friend std::ostream& operator<<(std::ostream& fout, const MyString& str) {
@@ -97,8 +123,11 @@ class MyString {
 };
 
 int main(int argc, char** argv) {
-    MyString s1("Hello");
-    MyString s2(s1);
-    MyString s3 = s1;
-    std::cout << s1 << '\n' << s2 << std::endl;
+    MyString s1("Hello ");
+    MyString s2("World");
+    MyString s3(" !!!");
+    MyString sayHelloAgain ("will overwrite this to demonstrate move semantics");
+    sayHelloAgain = s1 + s2 + s3;
+    sayHelloAgain.show();
+    return 0;
 }
